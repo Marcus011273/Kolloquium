@@ -4,6 +4,7 @@ import os
 import speech_recognition as sr
 from openai import OpenAI
 import io
+import re
 
 # 🔒 API-Schlüssel aus Streamlit Secrets laden
 api_key = os.getenv("OPENAI_API_KEY")
@@ -116,7 +117,7 @@ def openai_anfrage(prompt):
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=700
+            max_tokens=1000
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -127,38 +128,37 @@ if st.button("📊 Antwort analysieren"):
     nutzerantwort = st.session_state.get("sprachantwort", st.session_state.get("audio_text", ""))
 
     if nutzerantwort:
-        zeichenanzahl = len(nutzerantwort)
+        # Extrahiere Hauptbegriffe aus der Frage
+        frage_wörter = re.findall(r"\b\w+\b", st.session_state["frage"].lower())
+        relevante_wörter = [wort for wort in frage_wörter if len(wort) > 3]  # Nur sinnvolle Wörter verwenden
+        
+        # Überprüfe, ob diese Begriffe in der Antwort vorkommen
+        antwort_wörter = re.findall(r"\b\w+\b", nutzerantwort.lower())
+        fehlende_wörter = [wort for wort in relevante_wörter if wort not in antwort_wörter]
+
         gpt_prompt = f"""
-        Hier ist eine Prüfungsfrage, die eine Person in 30 Minuten beantwortet hat:  
-        **Frage:** {st.session_state['frage']}  
+        **Prüfungsfrage:** {st.session_state['frage']}  
         **Antwort:** {nutzerantwort}  
 
-        **Bewerte die Antwort nach folgenden Kriterien und gib ein detailliertes Feedback:**  
+        **Begriffsprüfung:**  
+        - Diese wichtigen Begriffe fehlen in der Antwort: {', '.join(fehlende_wörter)}  
+
+        **Bewerte die Antwort:**  
 
         📏 **Umfang:**  
-        - Die Antwort enthält **{zeichenanzahl} Zeichen**.  
-        - Ist das angemessen für eine 30-minütige Bearbeitungszeit? Sollte sie ausführlicher oder präziser sein?  
+        - Ist die Antwort angemessen für 30 Minuten Bearbeitungszeit? Sollte sie ausführlicher sein?  
 
         📖 **Struktur:**  
-        - Ist die Antwort logisch aufgebaut mit Einleitung, Hauptteil und Schluss?  
+        - Ist die Antwort klar gegliedert? (Einleitung, Hauptteil, Schluss)  
 
-        🔬 **Inhaltliche Tiefe:**  
-        - Werden Fachbegriffe und relevante Theorien korrekt verwendet?  
-
-        🎯 **Inhaltliche Relevanz zur Frage:**  
-        - Passt die Antwort inhaltlich zur gestellten Frage?  
-        - Falls nicht, welche Aspekte fehlen oder sollten präziser formuliert werden?  
+        🔬 **Inhaltliche Tiefe & Genauigkeit:**  
+        - Sind die wichtigsten Aspekte der Frage abgedeckt? Wurden die Begriffe aus der Fragestellung erläutert?  
 
         ⚖️ **Argumentation:**  
-        - Sind die Argumente überzeugend entwickelt und logisch nachvollziehbar?  
-
-        ❌ **Fehlende Aspekte:**  
-        - Welche wichtigen Punkte wurden nicht behandelt?  
-        - Gibt es Aspekte, die vertieft werden sollten?  
+        - Sind die Argumente fundiert und nachvollziehbar?  
 
         💡 **Verbesserungsvorschläge:**  
-        - Wo ist die Antwort besonders stark?  
-        - Wo kann sie noch verbessert werden?  
+        - Welche Anpassungen würden die Antwort verbessern?  
 
         🔍 **Mögliche Nachfragen:**  
         - Formuliere zwei anspruchsvolle Nachfragen zur Reflexion der Argumentation.  
@@ -171,6 +171,7 @@ if st.button("📊 Antwort analysieren"):
 
     else:
         st.warning("⚠️ Bitte gib eine Antwort ein!")
+
 
 
 
