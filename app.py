@@ -19,7 +19,11 @@ st.write(
     """
     Das System wählt eine zufällig generierte Prüfungsfrage aus.  
     Du hast dann **30 Minuten Zeit** für die Bearbeitung und kannst deine Lösung **schriftlich** oder **als Audio-Datei** eingeben.  
-    Falls du eine Audiodatei hochlädst, wird sie automatisch transkribiert und ausgewertet.  
+    Falls du eine Audiodatei hochlädst, wird sie automatisch transkribiert und ausgewertet. Bitte beachte, dass die Transkription und die Auswertung einige Zeit in Anspruch nehmen können. 
+
+**Ich wünsche Ihnen ein erfolgreiches Kolloquium!**
+
+Marcus Müller
     """
 )
 
@@ -132,6 +136,11 @@ if st.button("📊 Antwort analysieren"):
         🔬 **Inhaltliche Tiefe:**  
         - Werden Fachbegriffe und relevante Theorien korrekt verwendet?  
 
+        🎯 **Inhaltliche Relevanz zur Frage:**  
+        - Passt die Antwort inhaltlich zur gestellten Frage?  
+        - Gibt es Abweichungen vom Thema oder wurde die Frage direkt beantwortet?  
+        - Falls nicht, welche Aspekte fehlen oder sollten präziser formuliert werden?  
+
         ⚖️ **Argumentation:**  
         - Sind die Argumente überzeugend entwickelt und logisch nachvollziehbar?  
 
@@ -154,5 +163,6 @@ if st.button("📊 Antwort analysieren"):
 
     else:
         st.warning("⚠️ Bitte gib eine Antwort ein!")
+
 
 
