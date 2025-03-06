@@ -13,6 +13,19 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
+# **🔒 Passwortschutz**
+def check_password():
+    correct_password = "geheimesPasswort123"  # 🔑 Hier dein Passwort setzen oder als Secret speichern
+    password = st.text_input("🔑 Bitte gib das Passwort ein:", type="password")
+    if password == correct_password:
+        return True
+    elif password:
+        st.error("🚫 Falsches Passwort! Versuche es erneut.")
+    return False
+
+if not check_password():
+    st.stop()
+
 # **📌 Einführung und Beschreibung**
 st.title("🎓 Dein persönlicher Prüfungsassistent zur Simulation des Kolloquiums")
 st.write(
@@ -20,11 +33,18 @@ st.write(
     Das System wählt eine zufällig generierte Prüfungsfrage aus.  
     Du hast dann **30 Minuten Zeit** für die Bearbeitung und kannst deine Lösung **schriftlich** oder **als Audio-Datei** eingeben.  
     Falls du eine Audiodatei hochlädst, wird sie automatisch transkribiert und ausgewertet. Bitte beachte, dass die Transkription und die Auswertung einige Zeit in Anspruch nehmen können. 
-
-**Ich wünsche Ihnen ein erfolgreiches Kolloquium!**
-
-Marcus Müller
+    
+    **Ich wünsche Ihnen ein erfolgreiches Kolloquium!**  
+    
+    Marcus Müller
     """
+)
+
+# **📢 Datenschutzhinweis**
+st.info(
+    "📢 **Datenschutzhinweis:** Diese App nutzt OpenAI (GPT-4), um Antworten zu analysieren. "
+    "Die Eingaben werden an OpenAI gesendet, aber nicht dauerhaft gespeichert. "
+    "Bitte gib keine sensiblen oder personenbezogenen Daten ein."
 )
 
 # **📌 Fragenpool mit 12 Fragen**
@@ -138,21 +158,12 @@ if st.button("📊 Antwort analysieren"):
 
         🎯 **Inhaltliche Relevanz zur Frage:**  
         - Passt die Antwort inhaltlich zur gestellten Frage?  
-        - Gibt es Abweichungen vom Thema oder wurde die Frage direkt beantwortet?  
         - Falls nicht, welche Aspekte fehlen oder sollten präziser formuliert werden?  
 
         ⚖️ **Argumentation:**  
         - Sind die Argumente überzeugend entwickelt und logisch nachvollziehbar?  
 
-        ❌ **Fehlende Aspekte:**  
-        - Welche wichtigen Punkte wurden nicht behandelt?  
-        - Gibt es Aspekte, die vertieft werden sollten?  
-
-        💡 **Verbesserungsvorschläge:**  
-        - Wo ist die Antwort besonders stark?  
-        - Wo kann sie noch verbessert werden?  
-
-        🔍 **Mögliche Nachfragen zu deinen Ausführungen:**  
+        🔍 **Mögliche Nachfragen:**  
         - Formuliere zwei anspruchsvolle Nachfragen zur Reflexion der Argumentation.  
         """
 
