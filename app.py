@@ -5,26 +5,15 @@ import speech_recognition as sr
 from openai import OpenAI
 import io
 
-# OpenAI API-Schlüssel holen
+# 🔒 API-Schlüssel aus Streamlit Secrets laden
 api_key = os.getenv("OPENAI_API_KEY")
+
+# Prüfen, ob der API-Schlüssel existiert
 if not api_key:
-    st.error("Fehlender API-Schlüssel! Bitte setze eine Umgebungsvariable OPENAI_API_KEY.")
+    st.error("Fehlender API-Schlüssel! Bitte setze eine Umgebungsvariable OPENAI_API_KEY in Streamlit Secrets.")
     st.stop()
 
 client = OpenAI(api_key=api_key)
-
-# **🔒 Passwortschutz**
-def check_password():
-    correct_password = "geheimesPasswort123"  # 🔑 Hier dein Passwort setzen oder als Secret speichern
-    password = st.text_input("🔑 Bitte gib das Passwort ein:", type="password")
-    if password == correct_password:
-        return True
-    elif password:
-        st.error("🚫 Falsches Passwort! Versuche es erneut.")
-    return False
-
-if not check_password():
-    st.stop()
 
 # **📌 Einführung und Beschreibung**
 st.title("🎓 Dein persönlicher Prüfungsassistent zur Simulation des Kolloquiums")
@@ -163,6 +152,14 @@ if st.button("📊 Antwort analysieren"):
         ⚖️ **Argumentation:**  
         - Sind die Argumente überzeugend entwickelt und logisch nachvollziehbar?  
 
+        ❌ **Fehlende Aspekte:**  
+        - Welche wichtigen Punkte wurden nicht behandelt?  
+        - Gibt es Aspekte, die vertieft werden sollten?  
+
+        💡 **Verbesserungsvorschläge:**  
+        - Wo ist die Antwort besonders stark?  
+        - Wo kann sie noch verbessert werden?  
+
         🔍 **Mögliche Nachfragen:**  
         - Formuliere zwei anspruchsvolle Nachfragen zur Reflexion der Argumentation.  
         """
@@ -174,6 +171,7 @@ if st.button("📊 Antwort analysieren"):
 
     else:
         st.warning("⚠️ Bitte gib eine Antwort ein!")
+
 
 
 
