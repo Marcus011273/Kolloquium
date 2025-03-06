@@ -1,9 +1,9 @@
 import streamlit as st
 import random
 import os
-import time
 import speech_recognition as sr
 from openai import OpenAI
+import io
 
 # OpenAI API-Schlüssel holen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -18,9 +18,8 @@ st.title("🎓 Dein persönlicher Prüfungsassistent zur Simulation des Kolloqui
 st.write(
     """
     Das System wählt eine zufällig generierte Prüfungsfrage aus.  
-    Du hast dann **30 Minuten Zeit** für die Bearbeitung und kannst deine Lösung **schriftlich** oder **als Audio** eingeben.  
-    Falls du dich für die Audioeingabe entscheidest, hast du **maximal 10 Minuten** Zeit zum Sprechen.  
-    **Du kannst die Aufnahme jederzeit selbst beenden.**
+    Du hast dann **30 Minuten Zeit** für die Bearbeitung und kannst deine Lösung **schriftlich** oder **als Audio-Datei** eingeben.  
+    Falls du eine Audiodatei hochlädst, wird sie automatisch transkribiert und ausgewertet.  
     """
 )
 
@@ -65,48 +64,37 @@ if "frage" in st.session_state:
     st.write("⏳ Du hast 30 Minuten Zeit zur Vorbereitung. (Oder antworte sofort.)")
 
     # **Eingabemethode wählen**
-    eingabe_modus = st.radio("Wähle deine Eingabemethode:", ("Text", "Audio"))
+    eingabe_modus = st.radio("Wähle deine Eingabemethode:", ("Text", "Audio-Datei hochladen"))
 
     if eingabe_modus == "Text":
         antwort = st.text_area("✍️ Gib deine Antwort hier ein:", height=300)
         if antwort:
             st.session_state["sprachantwort"] = antwort
 
-    elif eingabe_modus == "Audio":
-        st.write("🎙️ Antwort per Spracheingabe")
-        st.write("🔹 **Wenn du fertig bist mit der Spracheingabe, dann klicke auf den Button „Antwort analysieren“.**")
+    elif eingabe_modus == "Audio-Datei hochladen":
+        st.write("🎙️ Lade eine Audiodatei hoch (nur WAV)")
 
-        if "audio_text" not in st.session_state:
-            st.session_state["audio_text"] = ""
+        uploaded_file = st.file_uploader("Datei hochladen", type=["wav"])
 
-        if "aufnahme_aktiv" not in st.session_state:
-            st.session_state["aufnahme_aktiv"] = False
+        if uploaded_file is not None:
+            st.audio(uploaded_file, format="audio/wav")
 
-        if st.button("🎤 Aufnahme starten"):
-            st.session_state["aufnahme_aktiv"] = True
-            st.session_state["audio_text"] = ""  # Leeren
+            # Datei aus dem `BytesIO`-Objekt lesen
+            audio_bytes = uploaded_file.read()
 
-        if st.session_state["aufnahme_aktiv"]:
-            st.write("🎤 **Aufnahme läuft...** (Sprich deine Antwort.)")
-
-            if st.button("🛑 Aufnahme stoppen"):
-                st.session_state["aufnahme_aktiv"] = False
-                st.write("✅ **Aufnahme manuell beendet.**")
-
+            # Spracherkennung
             recognizer = sr.Recognizer()
-            with sr.Microphone() as source:
-                recognizer.adjust_for_ambient_noise(source)
-                start_time = time.time()
-                while time.time() - start_time < 600 and st.session_state["aufnahme_aktiv"]:
-                    try:
-                        audio = recognizer.listen(source, timeout=None, phrase_time_limit=10)  # Mehrere kurze Segmente
-                        transkription = recognizer.recognize_google(audio, language="de-DE")
-                        st.session_state["audio_text"] += " " + transkription
-                        st.write(f"**Zwischenergebnis:** {st.session_state['audio_text']}")
-                    except sr.UnknownValueError:
-                        st.write("⚠️ Audio konnte nicht erkannt werden.")
-                    except sr.RequestError:
-                        st.write("⚠️ Fehler bei der Spracherkennung.")
+            with sr.AudioFile(io.BytesIO(audio_bytes)) as source:
+                audio = recognizer.record(source)
+
+            try:
+                text = recognizer.recognize_google(audio, language="de-DE")
+                st.write("📝 **Transkribierte Antwort:**", text)
+                st.session_state["audio_text"] = text
+            except sr.UnknownValueError:
+                st.write("❌ Konnte die Sprache nicht erkennen.")
+            except sr.RequestError:
+                st.write("❌ Fehler bei der Spracherkennung.")
 
 # **🔍 OpenAI Anfrage-Funktion**
 def openai_anfrage(prompt):
@@ -134,24 +122,29 @@ if st.button("📊 Antwort analysieren"):
 
         **Bewerte die Antwort nach folgenden Kriterien und gib ein detailliertes Feedback:**  
 
-        **📏 Umfang:**  
+        📏 **Umfang:**  
         - Die Antwort enthält **{zeichenanzahl} Zeichen**.  
         - Ist das angemessen für eine 30-minütige Bearbeitungszeit? Sollte sie ausführlicher oder präziser sein?  
 
-        **📖 Struktur:**  
+        📖 **Struktur:**  
         - Ist die Antwort logisch aufgebaut mit Einleitung, Hauptteil und Schluss?  
-        - Sind die Gedanken klar verknüpft und gut nachvollziehbar?  
 
-        **🔬 Inhaltliche Tiefe:**  
+        🔬 **Inhaltliche Tiefe:**  
         - Werden Fachbegriffe und relevante Theorien korrekt verwendet?  
-        - Gibt es fundierte Beispiele oder Belege für die Argumentation?  
 
-        **⚖️ Argumentation:**  
+        ⚖️ **Argumentation:**  
         - Sind die Argumente überzeugend entwickelt und logisch nachvollziehbar?  
-        - Werden Gegenargumente einbezogen oder kritisch reflektiert?  
 
-        **🔍 Mögliche Nachfragen:**  
-        - Stelle zwei herausfordernde Nachfragen zur Reflexion.  
+        ❌ **Fehlende Aspekte:**  
+        - Welche wichtigen Punkte wurden nicht behandelt?  
+        - Gibt es Aspekte, die vertieft werden sollten?  
+
+        💡 **Verbesserungsvorschläge:**  
+        - Wo ist die Antwort besonders stark?  
+        - Wo kann sie noch verbessert werden?  
+
+        🔍 **Mögliche Nachfragen zu deinen Ausführungen:**  
+        - Formuliere zwei anspruchsvolle Nachfragen zur Reflexion der Argumentation.  
         """
 
         feedback = openai_anfrage(gpt_prompt)
@@ -161,4 +154,5 @@ if st.button("📊 Antwort analysieren"):
 
     else:
         st.warning("⚠️ Bitte gib eine Antwort ein!")
+
 
