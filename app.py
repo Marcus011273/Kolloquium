@@ -6,10 +6,9 @@ from openai import OpenAI
 import io
 import re
 
-# 🔒 API-Schlüssel aus Streamlit Secrets laden
+# 🔒 OpenAI API-Schlüssel laden
 api_key = os.getenv("OPENAI_API_KEY")
 
-# Prüfen, ob der API-Schlüssel existiert
 if not api_key:
     st.error("Fehlender API-Schlüssel! Bitte setze eine Umgebungsvariable OPENAI_API_KEY in Streamlit Secrets.")
     st.stop()
@@ -30,14 +29,7 @@ st.write(
     """
 )
 
-# **📢 Datenschutzhinweis**
-st.info(
-    "📢 **Datenschutzhinweis:** Diese App nutzt OpenAI (GPT-4), um Antworten zu analysieren. "
-    "Die Eingaben werden an OpenAI gesendet, aber nicht dauerhaft gespeichert. "
-    "Bitte gib keine sensiblen oder personenbezogenen Daten ein."
-)
-
-# **📌 Fragenpool mit 12 Fragen**
+# **📌 Fragenpool**
 fragenpool = [
     "Ein Schüler/eine Schülerin stellt durch sein/ihr Verhalten eine Gefährdung für seine/ihre Mitschüler dar.",
     "Ein Schüler/eine Schülerin erklärt Ihnen, dass er/sie nicht in der Gruppe, sondern lieber alleine arbeiten möchte.",
@@ -74,7 +66,8 @@ if st.button("🔄 Zufällige Frage generieren"):
     neue_frage_ziehen()
 
 if "frage" in st.session_state:
-    st.write(f"### 📝 Deine Frage: {st.session_state['frage']}")
+    st.markdown("### 📌 **Deine Frage:**")
+    st.info(f"**{st.session_state['frage']}**")
     st.write("⏳ Du hast 30 Minuten Zeit zur Vorbereitung. (Oder antworte sofort.)")
 
     # **Eingabemethode wählen**
@@ -86,17 +79,15 @@ if "frage" in st.session_state:
             st.session_state["sprachantwort"] = antwort
 
     elif eingabe_modus == "Audio-Datei hochladen":
-        st.write("🎙️ Lade eine Audiodatei hoch (nur WAV)")
+        st.write("🎙️ Lade eine Audiodatei hoch (nur WAV) **(Sprechdauer ca. 10 Minuten)**")
 
         uploaded_file = st.file_uploader("Datei hochladen", type=["wav"])
 
         if uploaded_file is not None:
             st.audio(uploaded_file, format="audio/wav")
 
-            # Datei aus dem `BytesIO`-Objekt lesen
             audio_bytes = uploaded_file.read()
 
-            # Spracherkennung
             recognizer = sr.Recognizer()
             with sr.AudioFile(io.BytesIO(audio_bytes)) as source:
                 audio = recognizer.record(source)
@@ -110,29 +101,13 @@ if "frage" in st.session_state:
             except sr.RequestError:
                 st.write("❌ Fehler bei der Spracherkennung.")
 
-# **🔍 OpenAI Anfrage-Funktion**
-def openai_anfrage(prompt):
-    """Sendet die Antwort an OpenAI und gibt die GPT-4 Rückmeldung zurück."""
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=1000
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        return f"⚠️ Fehler bei der OpenAI-Anfrage: {e}"
-
 # **📊 Antwort analysieren & GPT-4 Feedback generieren**
 if st.button("📊 Antwort analysieren"):
     nutzerantwort = st.session_state.get("sprachantwort", st.session_state.get("audio_text", ""))
 
     if nutzerantwort:
-        # Extrahiere Hauptbegriffe aus der Frage
         frage_wörter = re.findall(r"\b\w+\b", st.session_state["frage"].lower())
-        relevante_wörter = [wort for wort in frage_wörter if len(wort) > 3]  # Nur sinnvolle Wörter verwenden
-        
-        # Überprüfe, ob diese Begriffe in der Antwort vorkommen
+        relevante_wörter = [wort for wort in frage_wörter if len(wort) > 3]
         antwort_wörter = re.findall(r"\b\w+\b", nutzerantwort.lower())
         fehlende_wörter = [wort for wort in relevante_wörter if wort not in antwort_wörter]
 
@@ -143,16 +118,14 @@ if st.button("📊 Antwort analysieren"):
         **Begriffsprüfung:**  
         - Diese wichtigen Begriffe fehlen in der Antwort: {', '.join(fehlende_wörter)}  
 
-        **Bewerte die Antwort:**  
-
         📏 **Umfang:**  
-        - Ist die Antwort angemessen für 30 Minuten Bearbeitungszeit? Sollte sie ausführlicher sein?  
+        - Ist die Antwort angemessen für eine 30-minütige Bearbeitungszeit?  
 
         📖 **Struktur:**  
         - Ist die Antwort klar gegliedert? (Einleitung, Hauptteil, Schluss)  
 
         🔬 **Inhaltliche Tiefe & Genauigkeit:**  
-        - Sind die wichtigsten Aspekte der Frage abgedeckt? Wurden die Begriffe aus der Fragestellung erläutert?  
+        - Sind die wichtigsten Aspekte der Frage abgedeckt?  
 
         ⚖️ **Argumentation:**  
         - Sind die Argumente fundiert und nachvollziehbar?  
@@ -164,13 +137,18 @@ if st.button("📊 Antwort analysieren"):
         - Formuliere zwei anspruchsvolle Nachfragen zur Reflexion der Argumentation.  
         """
 
-        feedback = openai_anfrage(gpt_prompt)
+        feedback = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": gpt_prompt}],
+            max_tokens=1000
+        ).choices[0].message.content.strip()
 
         st.write("### 🔎 Mein Feedback für dich")
         st.markdown(feedback)
 
     else:
         st.warning("⚠️ Bitte gib eine Antwort ein!")
+
 
 
 
