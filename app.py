@@ -31,18 +31,18 @@ st.write(
 
 # **📌 Fragenpool**
 fragenpool = [
-    "Ein Schüler/eine Schülerin stellt durch sein/ihr Verhalten eine Gefährdung für seine/ihre Mitschüler dar.",
-    "Ein Schüler/eine Schülerin erklärt Ihnen, dass er/sie nicht in der Gruppe, sondern lieber alleine arbeiten möchte.",
-    "Ein Schüler/eine Schülerin weigert sich, in der Gruppe mit einem/einer bestimmten Mitschüler/Mitschülerin zusammenzuarbeiten.",
-    "Ein Junge/ein Mädchen in Ihrer Klasse stört ständig den Unterricht. Auf Ihre Ermahnungen reagiert er/sie mit unangemessenen Kommentaren.",
-    "Rhythmisierung ist ein wichtiges Prinzip für die Planung Ihres Unterrichts.",
-    "Sie übernehmen eine Klasse mit einem hohen Anteil von Schülerinnen und Schülern mit Migrationshintergrund.",
-    "In Ihrer Klasse befinden sich Schülerinnen und Schüler mit unterschiedlichen Lernvoraussetzungen.",
-    "In Ihrem Kollegium werden offene und gebundene Unterrichtsformen kontrovers diskutiert.",
-    "In Phasen offenen Unterrichts fällt Ihnen ein Schüler/eine Schülerin auf, der/die stets Aufgaben auswählt, die nicht seinem/ihrem Leistungsvermögen entsprechen.",
-    "In Ihrer Klasse ist ein Schüler/eine Schülerin, der/die die Hausaufgaben unvollständig oder überhaupt nicht erledigt.",
-    "Sie stellen sich auf ein schwieriges Elterngespräch ein.",
-    "Lernstandserhebungen und Lernzielkontrollen sind Grundlage für Ihre weitere Unterrichtsplanung."
+    "Durch sein Verhalten bringt ein Schüler oder eine Schülerin seine bzw. ihre Mitschülerinnen und Mitschüler in Gefahr.",
+    "Ein Schüler oder eine Schülerin äußert den Wunsch, lieber allein als in der Gruppe zu arbeiten.",
+    "Ein Schüler oder eine Schülerin lehnt es ab, mit einer bestimmten Person in der Gruppe zusammenzuarbeiten.",
+    "Ein Kind in Ihrer Klasse sorgt wiederholt für Unruhe und reagiert auf Ermahnungen mit unangemessenen Kommentaren.",
+    "Eine durchdachte Strukturierung des Unterrichts spielt eine entscheidende Rolle für Ihre Planung.",
+    "Sie übernehmen eine Klasse, in der viele Schülerinnen und Schüler einen Migrationshintergrund haben.",
+    "Ihre Klasse ist geprägt durch eine große Bandbreite an individuellen Lernvoraussetzungen.",
+    "Innerhalb des Kollegiums gibt es unterschiedliche Meinungen zu offenen und gebundenen Unterrichtsformen.",
+    "Ihnen fällt auf, dass ein Schüler oder eine Schülerin im offenen Unterricht regelmäßig Aufgaben wählt, die nicht seinem oder ihrem Leistungsniveau entsprechen.",
+    "Ein Schüler oder eine Schülerin kommt häufig ohne vollständige oder gar keine Hausaufgaben in den Unterricht.",
+    "Sie stehen vor einem anspruchsvollen Gespräch mit Eltern.",
+    "Lernstandserhebungen und Lernzielkontrollen helfen Ihnen, den weiteren Unterricht gezielt zu planen."
 ]
 
 # **📌 Session State für Fragenrotation**
